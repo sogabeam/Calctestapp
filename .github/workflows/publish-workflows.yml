@@ -7,7 +7,7 @@ on:
 
 env:
   IMAGE_NAME: mycalcapp1
-  REGISTRY_NAME: TestDocker12
+  REGISTRY_NAME: testdocker12
   RESOURCE_GROUP: Testing
   CONTAINER_APP_NAME: calctestapp
   LOCATION: eastus
@@ -47,5 +47,6 @@ jobs:
           registryUrl: ${{ env.REGISTRY_NAME }}.azurecr.io
           registryUsername: ${{ secrets.AZURE_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
 
 
