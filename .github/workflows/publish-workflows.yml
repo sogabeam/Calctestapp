@@ -1,0 +1,46 @@
+name: Build and Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  IMAGE_NAME: mycalcapp1
+  REGISTRY_NAME: TestDocker12
+  RESOURCE_GROUP: Testing
+  CONTAINER_APP_NAME: calctestapp
+  LOCATION: eastus
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to ACR using Docker credentials
+        run: |
+          echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY_NAME }}.azurecr.io \
+            --username ${{ secrets.AZURE_REGISTRY_USERNAME }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      - name: Push image to ACR
+        run: |
+          docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appName: ${{ env.CONTAINER_APP_NAME }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          imageToDeploy: ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
